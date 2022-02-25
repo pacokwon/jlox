@@ -8,7 +8,7 @@ JAVA := java
 JC := javac
 JCFLAGS := -d $(OUT_DIR)/ -cp $(SRC_DIR)/
 
-.PHONY: all clean run
+.PHONY: all clean run genast
 
 all: $(CLS)
 
@@ -20,3 +20,6 @@ clean:
 
 run:
 	@ $(JAVA) -cp $(OUT_DIR) lox.Main
+
+genast: $(OUT_DIR)/tool/GenerateAst.class
+	$(JAVA) -cp $(OUT_DIR) tool.GenerateAst $(SRC_DIR)/lox
