@@ -30,12 +30,19 @@ public class GenerateAst {
     String path = String.format("%s/%s.java", outputDir, baseName);
     PrintWriter writer = new PrintWriter(path, "UTF-8");
 
-    writer.println("package lox");
+    writer.println("package lox;");
     writer.println();
     writer.println("import java.util.List;");
     writer.println();
     writer.printf("abstract class %s {\n", baseName);
 
+    defineVisitor(writer, baseName, types);
+
+    // accept method. every subclass should implement this method for a visitor
+    writer.println();
+    writer.printf("  abstract <R> R accept(Visitor<R> visitor);\n");
+
+    writer.println();
     for (String type : types) {
       String[] splitted = type.split(":");
 
@@ -46,6 +53,17 @@ public class GenerateAst {
 
     writer.println("}");
     writer.close();
+  }
+
+  private static void defineVisitor(
+      PrintWriter writer, String baseName, List<String> types) {
+    writer.println("  interface Visitor<R> {");
+
+    for (String type : types) {
+      String typeName = type.split(":")[0].trim();
+      writer.printf("    R visit%s%s(%s %s);\n", typeName, baseName, typeName, baseName.toLowerCase());
+    }
+    writer.println("  }");
   }
 
   private static void defineType(
@@ -65,8 +83,15 @@ public class GenerateAst {
 
     for (String field : fields) {
       String name = field.split(" ")[1];
-      writer.printf("      this.%s = %s\n", name, name);
+      writer.printf("      this.%s = %s;\n", name, name);
     }
+    writer.println("    }");
+
+    // override accept function
+    writer.println();
+    writer.println("    @Override");
+    writer.println("    <R> R accept(Visitor<R> visitor) {");
+    writer.printf ("      return visitor.visit%s%s(this);\n", className, baseName);
     writer.println("    }");
 
     writer.println("  }");
