@@ -8,200 +8,200 @@ import java.util.Map;
 import static lox.TokenType.*;
 
 class Scanner {
-    private final String source;
-    private final List<Token> tokens = new ArrayList<>();
-    private int start = 0;
-    private int current = 0;
-    private int line = 0;
-    private static final Map<String, TokenType> keywords;
+  private final String source;
+  private final List<Token> tokens = new ArrayList<>();
+  private int start = 0;
+  private int current = 0;
+  private int line = 0;
+  private static final Map<String, TokenType> keywords;
 
-    static {
-        keywords = new HashMap<>();
-        keywords.put("and",     AND);
-        keywords.put("class",   CLASS);
-        keywords.put("else",    ELSE);
-        keywords.put("false",   FALSE);
-        keywords.put("for",     FOR);
-        keywords.put("fun",     FUN);
-        keywords.put("if",      IF);
-        keywords.put("nil",     NIL);
-        keywords.put("or",      OR);
-        keywords.put("print",   PRINT);
-        keywords.put("return",  RETURN);
-        keywords.put("super",   SUPER);
-        keywords.put("this",    THIS);
-        keywords.put("true",    TRUE);
-        keywords.put("var",     VAR);
-        keywords.put("while",   WHILE);
+  static {
+    keywords = new HashMap<>();
+    keywords.put("and",     AND);
+    keywords.put("class",   CLASS);
+    keywords.put("else",    ELSE);
+    keywords.put("false",   FALSE);
+    keywords.put("for",     FOR);
+    keywords.put("fun",     FUN);
+    keywords.put("if",      IF);
+    keywords.put("nil",     NIL);
+    keywords.put("or",      OR);
+    keywords.put("print",   PRINT);
+    keywords.put("return",  RETURN);
+    keywords.put("super",   SUPER);
+    keywords.put("this",    THIS);
+    keywords.put("true",    TRUE);
+    keywords.put("var",     VAR);
+    keywords.put("while",   WHILE);
+  }
+
+  Scanner(String source) {
+    this.source = source;
+  }
+
+  List<Token> scanTokens() {
+    while (!isAtEnd()) {
+      start = current;
+      scanToken();
     }
 
-    Scanner(String source) {
-        this.source = source;
-    }
+    tokens.add(new Token(EOF, "", null, line));
+    return tokens;
+  }
 
-    List<Token> scanTokens() {
-        while (!isAtEnd()) {
-            start = current;
-            scanToken();
-        }
+  private boolean isAtEnd() {
+    return current >= source.length();
+  }
 
-        tokens.add(new Token(EOF, "", null, line));
-        return tokens;
-    }
-
-    private boolean isAtEnd() {
-        return current >= source.length();
-    }
-
-    private void scanToken() {
-        char c = advance();
-        switch (c) {
-            case '(': addToken(LEFT_PAREN); break;
-            case ')': addToken(RIGHT_PAREN); break;
-            case '{': addToken(LEFT_BRACE); break;
-            case '}': addToken(RIGHT_BRACE); break;
-            case ',': addToken(COMMA); break;
-            case '.': addToken(DOT); break;
-            case '-': addToken(MINUS); break;
-            case '+': addToken(PLUS); break;
-            case ';': addToken(SEMICOLON); break;
-            case '*': addToken(STAR); break;
-            case '!':
+  private void scanToken() {
+    char c = advance();
+    switch (c) {
+      case '(': addToken(LEFT_PAREN); break;
+      case ')': addToken(RIGHT_PAREN); break;
+      case '{': addToken(LEFT_BRACE); break;
+      case '}': addToken(RIGHT_BRACE); break;
+      case ',': addToken(COMMA); break;
+      case '.': addToken(DOT); break;
+      case '-': addToken(MINUS); break;
+      case '+': addToken(PLUS); break;
+      case ';': addToken(SEMICOLON); break;
+      case '*': addToken(STAR); break;
+      case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
                 break;
-            case '=':
+      case '=':
                 addToken(match('=') ? EQUAL_EQUAL : EQUAL);
                 break;
-            case '<':
+      case '<':
                 addToken(match('=') ? LESS_EQUAL : EQUAL);
                 break;
-            case '>':
+      case '>':
                 addToken(match('=') ? GREATER_EQUAL : GREATER);
                 break;
-            case '/':
+      case '/':
                 if (match('/')) {
-                    while (peek() != '\n' && !isAtEnd()) advance();
+                  while (peek() != '\n' && !isAtEnd()) advance();
                 } else {
-                    addToken(SLASH);
+                  addToken(SLASH);
                 }
                 break;
-            case ' ':
-            case '\r':
-            case '\t':
+      case ' ':
+      case '\r':
+      case '\t':
                 break;
 
-            case '\n':
+      case '\n':
                 line++;
                 break;
 
-            case '"':
+      case '"':
                 string();
                 break;
 
-            default:
+      default:
                 if (isDigit(c))
-                    number();
+                  number();
                 else if (isAlpha(c))
-                    identifier();
+                  identifier();
                 else
-                    Lox.error(line, "Unexpected character.");
+                  Lox.error(line, "Unexpected character.");
                 break;
-        }
+    }
+  }
+
+  private char advance() {
+    return source.charAt(current++);
+  }
+
+  /*
+   * NOTE: Consumes the current character if it matches!
+   */
+  private boolean match(char expected) {
+    if (isAtEnd())
+      return false;
+
+    if (source.charAt(current) != expected)
+      return false;
+
+    current++;
+    return true;
+  }
+
+  private char peek() {
+    if (isAtEnd()) return '\0';
+    return source.charAt(current);
+  }
+
+  private char peekNext() {
+    if (current + 1 >= source.length())
+      return '\0';
+
+    return source.charAt(current + 1);
+  }
+
+  private void addToken(TokenType type) {
+    addToken(type, null);
+  }
+
+  private void addToken(TokenType type, Object literal) {
+    String text = source.substring(start, current);
+    tokens.add(new Token(type, text, literal, line));
+  }
+
+  private void string() {
+    while (peek() != '"' && !isAtEnd()) {
+      if (peek() == '\n')
+        line++;
+      advance();
     }
 
-    private char advance() {
-        return source.charAt(current++);
+    // reached end without encountering double quote pair
+    if (isAtEnd()) {
+      Lox.error(line, "Unterminated string.");
+      return;
     }
 
-    /*
-     * NOTE: Consumes the current character if it matches!
-     */
-    private boolean match(char expected) {
-        if (isAtEnd())
-            return false;
+    advance();
 
-        if (source.charAt(current) != expected)
-            return false;
+    String value = source.substring(start + 1, current - 1);
+    addToken(STRING, value);
+  }
 
-        current++;
-        return true;
+  private void number() {
+    while (isDigit(peek()))
+      advance();
+
+    if (peek() == '.' && isDigit(peekNext())) {
+      advance();
+      while (isDigit(peek())) advance();
     }
 
-    private char peek() {
-        if (isAtEnd()) return '\0';
-        return source.charAt(current);
-    }
+    addToken(NUMBER, Double.parseDouble(source.substring(start, current)));
+  }
 
-    private char peekNext() {
-        if (current + 1 >= source.length())
-            return '\0';
+  private void identifier() {
+    while (isAlphaNumeric(peek())) advance();
 
-        return source.charAt(current + 1);
-    }
+    // check if identifier is one of the keywords
+    String ident = source.substring(start, current);
+    TokenType type = keywords.get(ident);
 
-    private void addToken(TokenType type) {
-        addToken(type, null);
-    }
+    // keyword has the higher priority
+    if (type == null) type = IDENTIFIER;
+    addToken(type);
+  }
 
-    private void addToken(TokenType type, Object literal) {
-        String text = source.substring(start, current);
-        tokens.add(new Token(type, text, literal, line));
-    }
+  private boolean isDigit(char c) {
+    return '0' <= c && c <= '9';
+  }
 
-    private void string() {
-        while (peek() != '"' && !isAtEnd()) {
-            if (peek() == '\n')
-                line++;
-            advance();
-        }
+  private boolean isAlpha(char c) {
+    return ('a' <= c && c <= 'z') ||
+      ('A' <= c && c <= 'Z') ||
+      c == '_';
+  }
 
-        // reached end without encountering double quote pair
-        if (isAtEnd()) {
-            Lox.error(line, "Unterminated string.");
-            return;
-        }
-
-        advance();
-
-        String value = source.substring(start + 1, current - 1);
-        addToken(STRING, value);
-    }
-
-    private void number() {
-        while (isDigit(peek()))
-            advance();
-
-        if (peek() == '.' && isDigit(peekNext())) {
-            advance();
-            while (isDigit(peek())) advance();
-        }
-
-        addToken(NUMBER, Double.parseDouble(source.substring(start, current)));
-    }
-
-    private void identifier() {
-        while (isAlphaNumeric(peek())) advance();
-
-        // check if identifier is one of the keywords
-        String ident = source.substring(start, current);
-        TokenType type = keywords.get(ident);
-
-        // keyword has the higher priority
-        if (type == null) type = IDENTIFIER;
-        addToken(type);
-    }
-
-    private boolean isDigit(char c) {
-        return '0' <= c && c <= '9';
-    }
-
-    private boolean isAlpha(char c) {
-        return ('a' <= c && c <= 'z') ||
-               ('A' <= c && c <= 'Z') ||
-               c == '_';
-    }
-
-    private boolean isAlphaNumeric(char c) {
-        return isAlpha(c) || isDigit(c);
-    }
+  private boolean isAlphaNumeric(char c) {
+    return isAlpha(c) || isDigit(c);
+  }
 }
