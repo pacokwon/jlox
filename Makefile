@@ -18,7 +18,7 @@ $(CLS): $(OUT_DIR)/%.class: $(SRC_DIR)/%.java
 clean:
 	@ rm -rf $(OUT_DIR)/lox
 
-run: $(OUT_DIR)/lox/Lox.class
+run: $(CLS)
 	@ $(JAVA) -cp $(OUT_DIR) lox.Lox
 
 genast: $(OUT_DIR)/tool/GenerateAst.class
