@@ -56,6 +56,28 @@ class Parser {
     return tokens.get(current - 1);
   }
 
+  private void synchronize() {
+    advance();
+
+    while (!isAtEnd()) {
+      if (peek().type == SEMICOLON) return;
+
+      switch (peek().type) {
+        case CLASS:
+        case FUN:
+        case VAR:
+        case FOR:
+        case IF:
+        case WHILE:
+        case PRINT:
+        case RETURN:
+          return;
+      }
+
+      advance();
+    }
+  }
+
   private Expr expression() {
     return equality();
   }
