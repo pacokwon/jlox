@@ -19,7 +19,7 @@ clean:
 	@ rm -rf $(OUT_DIR)/lox
 
 run:
-	@ $(JAVA) -cp $(OUT_DIR) lox.Main
+	@ $(JAVA) -cp $(OUT_DIR) lox.Lox
 
 genast: $(OUT_DIR)/tool/GenerateAst.class
 	$(JAVA) -cp $(OUT_DIR) tool.GenerateAst $(SRC_DIR)/lox
