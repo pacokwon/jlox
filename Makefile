@@ -21,5 +21,8 @@ clean:
 run: $(CLS)
 	@ $(JAVA) -cp $(OUT_DIR) lox.Lox
 
-genast: $(OUT_DIR)/tool/GenerateAst.class
-	$(JAVA) -cp $(OUT_DIR) tool.GenerateAst $(SRC_DIR)/lox
+genexpr: $(OUT_DIR)/tool/GenerateAst.class
+	$(JAVA) -cp $(OUT_DIR) tool.GenerateAst Expr $(SRC_DIR)/lox
+
+genstmt: $(OUT_DIR)/tool/GenerateAst.class
+	$(JAVA) -cp $(OUT_DIR) tool.GenerateAst Stmt $(SRC_DIR)/lox

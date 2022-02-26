@@ -7,21 +7,35 @@ import java.util.List;
 
 public class GenerateAst {
   public static void main(String[] args) throws IOException {
-    if (args.length != 1) {
-      System.err.println("Usage: generate_ast <output directory>");
+    if (args.length != 2) {
+      System.err.println("Usage: generate_ast <base name> <output directory>");
       System.exit(64);
     }
 
-    String outputDir = args[0];
-    String baseName = "Expr";
-    defineAst(outputDir, baseName, Arrays.asList(
-      "Binary     : Expr left, Token operator, Expr right",
-      "Grouping   : Expr expression",
-      "Literal    : Object value",
-      "Unary      : Token operator, Expr right"
-    ));
+    String baseName = args[0];
+    String outputDir = args[1];
+    List<String> types = fetchTypes(baseName);
+
+    defineAst(outputDir, baseName, types);
 
     System.out.printf("%s/%s.java successfully created.\n", outputDir, baseName);
+  }
+
+  private static List<String> fetchTypes(String baseName) {
+    if (baseName.equals("Expr"))
+      return Arrays.asList(
+        "Binary     : Expr left, Token operator, Expr right",
+        "Grouping   : Expr expression",
+        "Literal    : Object value",
+        "Unary      : Token operator, Expr right"
+      );
+    else if (baseName.equals("Stmt"))
+      return Arrays.asList(
+        "Expression : Expr expression",
+        "Print      : Expr expression"
+      );
+    else
+      throw new RuntimeException("Invalid baseName. Must be either \"Expr\" or \"Stmt\"");
   }
 
   private static void defineAst(
