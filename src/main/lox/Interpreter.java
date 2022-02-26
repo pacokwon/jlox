@@ -62,7 +62,7 @@ class Interpreter implements Expr.Visitor<Object> {
 
   @Override
   public Object visitGroupingExpr(Expr.Grouping expr) {
-    return expr.expression;
+    return evaluate(expr.expression);
   }
 
   @Override
