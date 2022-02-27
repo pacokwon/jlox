@@ -97,19 +97,20 @@ class Parser {
     return statement();
   }
 
+  /**
+   * statement <- exprStmt
+   *            | ifStmt
+   *            | assertStmt (*exclusive to this project)
+   *            | printStmt
+   *            | block
+   */
   private Stmt statement() {
-    if (match(PRINT)) return printStatement();
+    if (match(IF)) return ifStatement();
     if (match(ASSERT)) return assertion();
+    if (match(PRINT)) return printStatement();
     if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
     return expressionStatement();
-  }
-
-  private Stmt assertion() {
-    Token assertion = previous();
-    Expr expr = expression();
-    consume(SEMICOLON, "Expect ';' after assertion.");
-    return new Stmt.Assert(assertion, expr);
   }
 
   private List<Stmt> block() {
@@ -131,6 +132,27 @@ class Parser {
 
     consume(SEMICOLON, "Expect ';' after variable declaration.");
     return new Stmt.Var(name, init);
+  }
+
+  private Stmt ifStatement() {
+    consume(LEFT_PAREN, "Expect '(' after 'if'.");
+    Expr condition = expression();
+    consume(RIGHT_PAREN, "Expect ')' after if condition.");
+
+    Stmt thenBranch = statement();
+    Stmt elseBranch = null;
+
+    if (match(ELSE))
+      elseBranch = statement();
+
+    return new Stmt.If(condition, thenBranch, elseBranch);
+  }
+
+  private Stmt assertion() {
+    Token assertion = previous();
+    Expr expr = expression();
+    consume(SEMICOLON, "Expect ';' after assertion.");
+    return new Stmt.Assert(assertion, expr);
   }
 
   private Stmt printStatement() {

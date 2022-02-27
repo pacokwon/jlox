@@ -37,7 +37,8 @@ public class GenerateAst {
         "Assert     : Token assertion, Expr expression",
         "Print      : Expr expression",
         "Var        : Token name, Expr initializer",
-        "Block      : List<Stmt> statements"
+        "Block      : List<Stmt> statements",
+        "If         : Expr condition, Stmt thenBranch, Stmt elseBranch"
       );
     else
       throw new RuntimeException("Invalid baseName. Must be either \"Expr\" or \"Stmt\"");
