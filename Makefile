@@ -8,7 +8,7 @@ JAVA := java
 JC := javac
 JCFLAGS := -d $(OUT_DIR)/ -cp $(SRC_DIR)/
 
-.PHONY: all clean run genast
+.PHONY: all clean run genexpr genstmt
 
 all: $(CLS)
 
