@@ -108,10 +108,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         checkNumberOperand(expr.operator, left, right);
         return (double)left <= (double)right;
       case EQUAL_EQUAL:
-        checkNumberOperand(expr.operator, left, right);
         return isEqual(left, right);
       case BANG_EQUAL:
-        checkNumberOperand(expr.operator, left, right);
         return !isEqual(left, right);
     }
 
