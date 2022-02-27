@@ -39,6 +39,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
+  public Void visitAssertStmt(Stmt.Assert stmt) {
+    Object val = evaluate(stmt.expression);
+    if (!isTruthy(val))
+      throw new RuntimeError(stmt.assertion, String.format("%s is not truthy", stringify(val)));
+    return null;
+  }
+
+  @Override
   public Void visitVarStmt(Stmt.Var stmt) {
     Object val = null;
     if (stmt.initializer != null) {

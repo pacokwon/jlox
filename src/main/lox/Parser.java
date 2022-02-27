@@ -75,6 +75,7 @@ class Parser {
       if (peek().type == SEMICOLON) return;
 
       switch (peek().type) {
+        case ASSERT:
         case CLASS:
         case FUN:
         case VAR:
@@ -98,9 +99,17 @@ class Parser {
 
   private Stmt statement() {
     if (match(PRINT)) return printStatement();
+    if (match(ASSERT)) return assertion();
     if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
     return expressionStatement();
+  }
+
+  private Stmt assertion() {
+    Token assertion = previous();
+    Expr expr = expression();
+    consume(SEMICOLON, "Expect ';' after assertion.");
+    return new Stmt.Assert(assertion, expr);
   }
 
   private List<Stmt> block() {

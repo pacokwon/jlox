@@ -5,6 +5,7 @@ import java.util.List;
 abstract class Stmt {
   interface Visitor<R> {
     R visitExpressionStmt(Expression stmt);
+    R visitAssertStmt(Assert stmt);
     R visitPrintStmt(Print stmt);
     R visitVarStmt(Var stmt);
     R visitBlockStmt(Block stmt);
@@ -22,6 +23,20 @@ abstract class Stmt {
     @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitExpressionStmt(this);
+    }
+  }
+  static class Assert extends Stmt {
+    final Token assertion;
+    final Expr expression;
+
+    Assert(Token assertion, Expr expression) {
+      this.assertion = assertion;
+      this.expression = expression;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitAssertStmt(this);
     }
   }
   static class Print extends Stmt {
