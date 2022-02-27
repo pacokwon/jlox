@@ -35,7 +35,8 @@ public class GenerateAst {
       return Arrays.asList(
         "Expression : Expr expression",
         "Print      : Expr expression",
-        "Var        : Token name, Expr initializer"
+        "Var        : Token name, Expr initializer",
+        "Block      : List<Stmt> statements"
       );
     else
       throw new RuntimeException("Invalid baseName. Must be either \"Expr\" or \"Stmt\"");
