@@ -24,15 +24,18 @@ public class GenerateAst {
   private static List<String> fetchTypes(String baseName) {
     if (baseName.equals("Expr"))
       return Arrays.asList(
+        "Assign     : Token name, Expr expr",
         "Binary     : Expr left, Token operator, Expr right",
         "Grouping   : Expr expression",
         "Literal    : Object value",
-        "Unary      : Token operator, Expr right"
+        "Unary      : Token operator, Expr right",
+        "Variable   : Token name"
       );
     else if (baseName.equals("Stmt"))
       return Arrays.asList(
         "Expression : Expr expression",
-        "Print      : Expr expression"
+        "Print      : Expr expression",
+        "Var        : Token name, Expr initializer"
       );
     else
       throw new RuntimeException("Invalid baseName. Must be either \"Expr\" or \"Stmt\"");

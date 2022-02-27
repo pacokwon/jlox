@@ -5,6 +5,8 @@ import java.util.List;
 import static lox.TokenType.*;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+  private Environment environment = new Environment();
+
   void interpret(List<Stmt> statements) {
     try {
       for (Stmt statement : statements) {
@@ -24,6 +26,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
+  public Void visitVarStmt(Stmt.Var stmt) {
+    Object val = null;
+    if (stmt.initializer != null) {
+      val = evaluate(stmt.initializer);
+    }
+    environment.define(stmt.name.lexeme, val);
+    return null;
+  }
+
+  @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     evaluate(stmt.expression);
     return null;
@@ -34,6 +46,13 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object val = evaluate(stmt.expression);
     System.out.println(stringify(val));
     return null;
+  }
+
+  @Override
+  public Object visitAssignExpr(Expr.Assign expr) {
+    Object val = evaluate(expr.expr);
+    environment.assign(expr.name, val);
+    return val;
   }
 
   @Override
@@ -103,6 +122,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     return null;
+  }
+
+  @Override
+  public Object visitVariableExpr(Expr.Variable expr) {
+    return environment.get(expr.name);
   }
 
   // only false and nil are falsy. all others are truthy

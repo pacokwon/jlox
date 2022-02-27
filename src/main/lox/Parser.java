@@ -17,7 +17,7 @@ class Parser {
   List<Stmt> parse() {
     List<Stmt> statements = new ArrayList<>();
     while (!isAtEnd())
-      statements.add(statement());
+      statements.add(declaration());
     return statements;
   }
 
@@ -56,6 +56,18 @@ class Parser {
     return tokens.get(current - 1);
   }
 
+  private Token consume(TokenType type, String message) {
+    if (check(type))
+      return advance();
+
+    throw error(peek(), message);
+  }
+
+  private ParseError error(Token token, String message) {
+    Lox.error(token, message);
+    return new ParseError();
+  }
+
   private void synchronize() {
     advance();
 
@@ -78,10 +90,27 @@ class Parser {
     }
   }
 
+  private Stmt declaration() {
+    if (match(VAR)) return varDeclaration();
+
+    return statement();
+  }
+
   private Stmt statement() {
     if (match(PRINT)) return printStatement();
 
     return expressionStatement();
+  }
+
+  private Stmt varDeclaration() {
+    Token name = consume(IDENTIFIER, "Expect variable name.");
+
+    Expr init = null;
+    if (match(EQUAL))
+      init = expression();
+
+    consume(SEMICOLON, "Expect ';' after variable declaration.");
+    return new Stmt.Var(name, init);
   }
 
   private Stmt printStatement() {
@@ -97,19 +126,26 @@ class Parser {
   }
 
   private Expr expression() {
-    return equality();
+    return assignment();
   }
 
-  private Token consume(TokenType type, String message) {
-    if (check(type))
-      return advance();
+  private Expr assignment() {
+    // assignment <- IDENTIFIER = assignment | equality
+    Expr expr = equality();
 
-    throw error(peek(), message);
-  }
+    if (match(EQUAL)) {
+      Token equals = previous();
+      Expr right = assignment();
 
-  private ParseError error(Token token, String message) {
-    Lox.error(token, message);
-    return new ParseError();
+      if (expr instanceof Expr.Variable) {
+        Token name = ((Expr.Variable) expr).name;
+        return new Expr.Assign(name, right);
+      }
+
+      error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
   }
 
   private Expr equality() {
@@ -182,7 +218,11 @@ class Parser {
     if (match(TRUE)) return new Expr.Literal(true);
     if (match(NIL)) return new Expr.Literal(null);
 
-    if (match(NUMBER, STRING)) return new Expr.Literal(previous().literal);
+    if (match(NUMBER, STRING))
+      return new Expr.Literal(previous().literal);
+
+    if (match(IDENTIFIER))
+      return new Expr.Variable(previous());
 
     if (match(LEFT_PAREN)) {
       Expr expr = expression();
