@@ -1,0 +1,15 @@
+var a = "global a";
+var b = "global b";
+var c = "global c";
+
+{
+    var a = "local a";
+    b = "changed from block 2";
+    assert a == "local a";
+    assert b == "changed from block 2";
+    assert c == "global c";
+}
+
+assert a == "global a";
+assert b == "changed from block 2";
+assert c == "global c";

@@ -1,0 +1,12 @@
+assert (true and true) == true;
+assert (false and true) == false;
+assert (true and false) == false;
+assert (false and false) == false;
+
+assert (true or true) == true;
+assert (false or true) == true;
+assert (true or false) == true;
+assert (false or false) == false;
+
+assert (nil or "hi") == "hi";
+assert ("hi" and 3) == 3;
