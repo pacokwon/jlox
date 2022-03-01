@@ -25,6 +25,7 @@ public class GenerateAst {
     if (baseName.equals("Expr"))
       return Arrays.asList(
         "Assign     : Token name, Expr expr",
+        "Logical    : Expr left, Token operator, Expr right",
         "Binary     : Expr left, Token operator, Expr right",
         "Grouping   : Expr expression",
         "Literal    : Object value",
