@@ -1,0 +1,10 @@
+var a = 0;
+var b = 0;
+var temp;
+for (b = 1; a < 10; b = temp + b) {
+    temp = a;
+    a = b;
+}
+
+assert a == 13;
+assert b == 21;

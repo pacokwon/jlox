@@ -1,7 +1,8 @@
 package lox;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.List;
 
 import static lox.TokenType.*;
 
@@ -100,6 +101,7 @@ class Parser {
   /**
    * statement <- exprStmt
    *            | ifStmt
+   *            | forStmt
    *            | whileStmt
    *            | assertStmt (*exclusive to this project)
    *            | printStmt
@@ -108,6 +110,7 @@ class Parser {
   private Stmt statement() {
     if (match(IF)) return ifStatement();
     if (match(WHILE)) return whileStatement();
+    if (match(FOR)) return forStatement();
     if (match(ASSERT)) return assertion();
     if (match(PRINT)) return printStatement();
     if (match(LEFT_BRACE)) return new Stmt.Block(block());
@@ -156,6 +159,56 @@ class Parser {
     consume(RIGHT_PAREN, "Expect ')' after while condition.");
     Stmt body = statement();
     return new Stmt.While(condition, body);
+  }
+
+  /**
+   *
+   * forStmt <- "("
+   *            (exprStmt | varDecl | ";")
+   *            expression? ";"
+   *            expression?
+   *            ")"
+   *            statement
+   */
+  private Stmt forStatement() {
+    consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+    Stmt initializer;
+    if (match(SEMICOLON))
+      initializer = null;
+    else if (match(VAR))
+      initializer = varDeclaration();
+    else
+      initializer = expressionStatement();
+
+    Expr condition = null;
+    if (!check(SEMICOLON))
+      condition = expression();
+    consume(SEMICOLON, "Expected ';' after loop condition.");
+
+    Expr increment = null;
+    if (!check(RIGHT_PAREN))
+      increment = expression();
+    consume(RIGHT_PAREN, "Expected ')' after for clauses.");
+
+    Stmt body = statement();
+
+    // (init; cond; incr) stmt -> init while (cond) { stmt; incr; }
+
+    // if increment is not null, the body has to be a block
+    if (increment != null)
+      body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+
+    // if condition is empty, it defaults to true.
+    if (condition == null)
+      condition = new Expr.Literal(true);
+
+    body = new Stmt.While(condition, body);
+
+    if (initializer != null)
+      body = new Stmt.Block(Arrays.asList(initializer, body));
+
+    return body;
   }
 
   private Stmt assertion() {
