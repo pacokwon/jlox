@@ -24,7 +24,7 @@ $(CLS): $(OUT_DIR)/%.class: $(SRC_DIR)/%.java
 	$(JC) $(JCFLAGS) $<
 
 $(REPORTS): reports/%.report: $(TEST_DIR)/%.lox $(CLS) | $(REPORTS_DIR)
-	@ echo -ne "[$*]: "
+	@ printf "[%-15s]: " $*
 	@ $(JAVA) -cp $(OUT_DIR) lox.Lox $< 2>&1 | tee $@
 	@ echo PASSED
 
