@@ -1,0 +1,17 @@
+fun makeCounter() {
+    var i = 0;
+    fun counter() {
+        i = i + 1;
+        return i;
+    }
+    return counter;
+}
+
+var cnt1 = makeCounter();
+var cnt2 = makeCounter();
+assert 1 == cnt1();
+assert 1 == cnt2();
+assert 2 == cnt1();
+assert 3 == cnt1();
+assert 2 == cnt2();
+assert 3 == cnt2();

@@ -1,8 +1,0 @@
-fun printTil(n) {
-    if (n > 0) {
-        printTil(n - 1);
-        print n;
-    }
-}
-
-printTil(10);
