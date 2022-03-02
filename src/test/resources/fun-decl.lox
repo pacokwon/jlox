@@ -1,0 +1,5 @@
+fun printAdd(x, y) {
+    print x + y;
+}
+
+printAdd(3, 4);

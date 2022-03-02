@@ -36,6 +36,7 @@ public class GenerateAst {
     else if (baseName.equals("Stmt"))
       return Arrays.asList(
         "Expression : Expr expression",
+        "Function   : Token name, List<Token> params, List<Stmt> body",
         "Assert     : Token assertion, Expr expression",
         "Print      : Expr expression",
         "Var        : Token name, Expr initializer",
