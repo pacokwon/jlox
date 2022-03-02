@@ -42,7 +42,8 @@ public class GenerateAst {
         "Var        : Token name, Expr initializer",
         "Block      : List<Stmt> statements",
         "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
-        "While      : Expr condition, Stmt body"
+        "While      : Expr condition, Stmt body",
+        "Return     : Token keyword, Expr value"
       );
     else
       throw new RuntimeException("Invalid baseName. Must be either \"Expr\" or \"Stmt\"");

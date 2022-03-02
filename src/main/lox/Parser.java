@@ -147,6 +147,7 @@ class Parser {
    *            | assertStmt (*exclusive to this project)
    *            | printStmt
    *            | block
+   *            | returnStmt
    */
   private Stmt statement() {
     if (match(IF)) return ifStatement();
@@ -154,9 +155,22 @@ class Parser {
     if (match(FOR)) return forStatement();
     if (match(ASSERT)) return assertion();
     if (match(PRINT)) return printStatement();
+    if (match(RETURN)) return returnStatement();
     if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
     return expressionStatement();
+  }
+
+  private Stmt returnStatement() {
+    // returnStmt <- "return" expression? ";"
+    Token keyword = previous();
+    Expr value = null;
+
+    if (!check(SEMICOLON))
+      value = expression();
+
+    consume(SEMICOLON, "Expected ';' after return value.");
+    return new Stmt.Return(keyword, value);
   }
 
   private List<Stmt> block() {

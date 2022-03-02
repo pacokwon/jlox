@@ -19,7 +19,12 @@ class LoxFunction implements LoxCallable {
     Environment env = new Environment(interpreter.globals);
     for (int i = 0; i < declaration.params.size(); i++)
       env.define(declaration.params.get(i).lexeme, arguments.get(i));
-    interpreter.executeBlock(declaration.body, env);
+
+    try {
+      interpreter.executeBlock(declaration.body, env);
+    } catch (Return returnValue) {
+      return returnValue.value;
+    }
     return null;
   }
 }
