@@ -30,6 +30,7 @@ public class GenerateAst {
         "Grouping   : Expr expression",
         "Literal    : Object value",
         "Unary      : Token operator, Expr right",
+        "Call       : Expr callee, Token paren, List<Expr> arguments",
         "Variable   : Token name"
       );
     else if (baseName.equals("Stmt"))

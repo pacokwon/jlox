@@ -333,14 +333,43 @@ class Parser {
   }
 
   private Expr unary() {
-    // unary <- (! | -) unary | primary
+    // unary <- (! | -) unary | call
     if (match(BANG, MINUS)) {
       Token operator = previous();
       Expr right = unary();
       return new Expr.Unary(operator, right);
     }
 
-    return primary();
+    return call();
+  }
+
+  private Expr call() {
+    // call <- primary ("(" arguments? ")")*
+    Expr expr = primary();
+
+    // arguments <- expression ("," expression)*
+    while (true) {
+      if (match(LEFT_PAREN))
+        expr = finishCall(expr);
+      else
+        break;
+    }
+
+    return expr;
+  }
+
+  private Expr finishCall(Expr expr) {
+    List<Expr> arguments = new ArrayList<>();
+
+    if (!check(RIGHT_PAREN)) {
+      do {
+        arguments.add(expression());
+      } while (match(COMMA));
+    }
+
+    Token paren = consume(RIGHT_PAREN, "Expected ')' after arguments.");
+
+    return new Expr.Call(expr, paren, arguments);
   }
 
   private Expr primary() {
