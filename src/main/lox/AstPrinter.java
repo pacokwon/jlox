@@ -55,4 +55,9 @@ class AstPrinter implements Expr.Visitor<String> {
   public String visitAssignExpr(Expr.Assign expr) {
     return parenthesize("= " + expr.name.lexeme, expr.expr);
   }
+
+  @Override
+  public String visitCallExpr(Expr.Call expr) {
+    return parenthesize(print(expr.callee), expr.arguments.toArray(new Expr[0]));
+  }
 }

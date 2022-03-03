@@ -1,13 +1,16 @@
 package lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static lox.TokenType.*;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   Environment globals = new Environment();
   private Environment environment = globals;
+  private final Map<Expr, Integer> locals = new HashMap<>();
 
   Interpreter() {
     globals.define("clock", new LoxCallable() {
@@ -24,6 +27,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return "<native function clock>";
       }
     });
+  }
+
+  void resolve(Expr expr, int depth) {
+    locals.put(expr, depth);
+  }
+
+  private Object lookupVariable(Token name, Expr expr) {
+    Integer distance = locals.get(expr);
+    if (distance != null)
+      return environment.getAt(distance, name.lexeme);
+    else
+      return globals.get(name);
   }
 
   void interpret(List<Stmt> statements) {
@@ -133,7 +148,13 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Object visitAssignExpr(Expr.Assign expr) {
     Object val = evaluate(expr.expr);
-    environment.assign(expr.name, val);
+    Integer distance = locals.get(expr);
+
+    if (distance != null)
+      environment.assignAt(distance, expr.name, val);
+    else
+      globals.assign(expr.name, val);
+
     return val;
   }
 
@@ -239,7 +260,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
-    return environment.get(expr.name);
+    return lookupVariable(expr.name, expr);
   }
 
   // only false and nil are falsy. all others are truthy
