@@ -15,6 +15,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   // `scopes` is initially empty. which means that the global scope is
   // not considered by this variable.
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+  private enum FunctionType {
+    NONE,
+    FUNCTION
+  }
+  private FunctionType currentFunction = FunctionType.NONE;
 
   Resolver(Interpreter interpreter) {
     this.interpreter = interpreter;
@@ -72,7 +77,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
   }
 
-  private void resolveFunction(Stmt.Function stmt) {
+  private void resolveFunction(Stmt.Function stmt, FunctionType type) {
+    FunctionType enclosing = currentFunction;
+    currentFunction = type;
+
     beginScope();
     for (Token param : stmt.params) {
       declare(param);
@@ -81,6 +89,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     resolve(stmt.body);
     endScope();
+
+    currentFunction = enclosing;
   }
 
   @Override
@@ -116,7 +126,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   public Void visitFunctionStmt(Stmt.Function stmt) {
     declare(stmt.name);
     define(stmt.name);
-    resolveFunction(stmt);
+    resolveFunction(stmt, FunctionType.FUNCTION);
     return null;
   }
 
@@ -150,6 +160,9 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitReturnStmt(Stmt.Return stmt) {
+    if (currentFunction != FunctionType.FUNCTION)
+      Lox.error(stmt.keyword, "Can't return from top-level code.");
+
     if (stmt.value != null)
       resolve(stmt.value);
     return null;
