@@ -299,6 +299,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return value;
   }
 
+  @Override
+  public Object visitThisExpr(Expr.This expr) {
+    return lookupVariable(expr.keyword, expr);
+  }
+
   // only false and nil are falsy. all others are truthy
   private boolean isTruthy(Object val) {
     if (val == null) return false;

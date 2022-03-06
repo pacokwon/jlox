@@ -21,6 +21,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     METHOD
   }
   private FunctionType currentFunction = FunctionType.NONE;
+  private enum ClassType {
+    NONE,
+    CLASS
+  }
+  private ClassType currentClass = ClassType.NONE;
 
   Resolver(Interpreter interpreter) {
     this.interpreter = interpreter;
@@ -171,15 +176,23 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
+    ClassType enclosingClass = currentClass;
+    currentClass = ClassType.CLASS;
+
     // class names can be used as values too,
     // so we declare and define it.
     declare(stmt.name);
     define(stmt.name);
 
+    beginScope();
+    scopes.peek().put("this", true);
     for (Stmt.Function method : stmt.methods) {
       FunctionType declaration = FunctionType.METHOD;
       resolveFunction(method, declaration);
     }
+    endScope();
+
+    currentClass = enclosingClass;
     return null;
   }
 
@@ -250,6 +263,12 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   public Void visitSetExpr(Expr.Set expr) {
     resolve(expr.value);
     resolve(expr.object);
+    return null;
+  }
+
+  @Override
+  public Void visitThisExpr(Expr.This expr) {
+    resolveLocal(expr, expr.keyword);
     return null;
   }
 }

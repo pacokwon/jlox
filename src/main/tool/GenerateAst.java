@@ -33,7 +33,8 @@ public class GenerateAst {
         "Call       : Expr callee, Token paren, List<Expr> arguments",
         "Variable   : Token name",
         "Get        : Expr object, Token name",
-        "Set        : Expr object, Token name, Expr value"
+        "Set        : Expr object, Token name, Expr value",
+        "This       : Token keyword"
       );
     else if (baseName.equals("Stmt"))
       return Arrays.asList(
