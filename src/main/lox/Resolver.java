@@ -17,7 +17,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
   private enum FunctionType {
     NONE,
-    FUNCTION
+    FUNCTION,
+    METHOD
   }
   private FunctionType currentFunction = FunctionType.NONE;
 
@@ -169,6 +170,20 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   }
 
   @Override
+  public Void visitClassStmt(Stmt.Class stmt) {
+    // class names can be used as values too,
+    // so we declare and define it.
+    declare(stmt.name);
+    define(stmt.name);
+
+    for (Stmt.Function method : stmt.methods) {
+      FunctionType declaration = FunctionType.METHOD;
+      resolveFunction(method, declaration);
+    }
+    return null;
+  }
+
+  @Override
   public Void visitAssignExpr(Expr.Assign expr) {
     resolve(expr.expr);
     resolveLocal(expr, expr.name);
@@ -222,6 +237,19 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       Lox.error(expr.name, "Can't read local variables in its own initializer.");
 
     resolveLocal(expr, expr.name);
+    return null;
+  }
+
+  @Override
+  public Void visitGetExpr(Expr.Get expr) {
+    resolve(expr.object);
+    return null;
+  }
+
+  @Override
+  public Void visitSetExpr(Expr.Set expr) {
+    resolve(expr.value);
+    resolve(expr.object);
     return null;
   }
 }

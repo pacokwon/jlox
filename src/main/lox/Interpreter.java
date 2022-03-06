@@ -81,6 +81,22 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
+  public Void visitClassStmt(Stmt.Class stmt) {
+    // this is for methods, so that they have a mapping to this class.
+    environment.define(stmt.name.lexeme, null);
+
+    Map<String, LoxFunction> methods = new HashMap<>();
+    for (Stmt.Function method : stmt.methods) {
+      LoxFunction function = new LoxFunction(method, environment);
+      methods.put(method.name.lexeme, function);
+    }
+
+    LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+    environment.assign(stmt.name, klass);
+    return null;
+  }
+
+  @Override
   public Void visitVarStmt(Stmt.Var stmt) {
     Object val = null;
     if (stmt.initializer != null) {
@@ -261,6 +277,26 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
     return lookupVariable(expr.name, expr);
+  }
+
+  @Override
+  public Object visitGetExpr(Expr.Get expr) {
+    Object object = evaluate(expr.object);
+    if (object instanceof LoxInstance)
+      return ((LoxInstance) object).get(expr.name);
+
+    throw new RuntimeError(expr.name, "Only instances have properties.");
+  }
+
+  @Override
+  public Object visitSetExpr(Expr.Set expr) {
+    Object object = evaluate(expr.object);
+    if (!(object instanceof LoxInstance))
+      throw new RuntimeError(expr.name, "Only instances have fields.");
+
+    Object value = evaluate(expr.value);
+    ((LoxInstance)object).set(expr.name, value);
+    return value;
   }
 
   // only false and nil are falsy. all others are truthy

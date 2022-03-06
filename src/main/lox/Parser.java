@@ -95,17 +95,18 @@ class Parser {
   /**
    * declaration <- varDecl
    *              | funDecl
+   *              | classDecl
    *              | statement
-   *
    */
   private Stmt declaration() {
     if (match(VAR)) return varDeclaration();
+    if (match(CLASS)) return classDeclaration();
     if (match(FUN)) return function("function");
 
     return statement();
   }
 
-  private Stmt function(String kind) {
+  private Stmt.Function function(String kind) {
     // funDecl <- "fun" IDENTIFIER "(" parameters? ")" block
     Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
     consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
@@ -125,6 +126,19 @@ class Parser {
 
     List<Stmt> body = block();
     return new Stmt.Function(name, params, body);
+  }
+
+  private Stmt classDeclaration() {
+    // classDecl <- "class" IDENTIFIER "{" function* "}"
+    Token name = consume(IDENTIFIER, "Expect class name.");
+    consume(LEFT_BRACE, "Expect '{' before class body.");
+
+    List<Stmt.Function> methods = new ArrayList<>();
+    while (!check(RIGHT_BRACE) && !isAtEnd())
+      methods.add(function("method"));
+
+    consume(RIGHT_BRACE, "Expect '}' after class body.");
+    return new Stmt.Class(name, methods);
   }
 
   private Stmt varDeclaration() {
@@ -279,7 +293,7 @@ class Parser {
   }
 
   private Expr assignment() {
-    // assignment <- IDENTIFIER = assignment | logic_or
+    // assignment <- (call ".")? IDENTIFIER = assignment | logic_or
     Expr expr = or();
 
     if (match(EQUAL)) {
@@ -289,6 +303,9 @@ class Parser {
       if (expr instanceof Expr.Variable) {
         Token name = ((Expr.Variable) expr).name;
         return new Expr.Assign(name, right);
+      } else if (expr instanceof Expr.Get) {
+        Expr.Get get = (Expr.Get) expr;
+        return new Expr.Set(get.object, get.name, right);
       }
 
       error(equals, "Invalid assignment target.");
@@ -388,14 +405,17 @@ class Parser {
   }
 
   private Expr call() {
-    // call <- primary ("(" arguments? ")")*
+    // call <- primary ("(" arguments? ")" | "." IDENTIFIER)*
     Expr expr = primary();
 
     // arguments <- expression ("," expression)*
     while (true) {
-      if (match(LEFT_PAREN))
+      if (match(LEFT_PAREN)) {
         expr = finishCall(expr);
-      else
+      } else if (match(DOT)) {
+        Token name = consume(IDENTIFIER, "Expect property name after '.'.");
+        expr = new Expr.Get(expr, name);
+      } else
         break;
     }
 
