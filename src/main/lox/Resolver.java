@@ -18,6 +18,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private enum FunctionType {
     NONE,
     FUNCTION,
+    INITIALIZER,
     METHOD
   }
   private FunctionType currentFunction = FunctionType.NONE;
@@ -169,8 +170,12 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     if (currentFunction != FunctionType.FUNCTION)
       Lox.error(stmt.keyword, "Can't return from top-level code.");
 
-    if (stmt.value != null)
+    if (stmt.value != null) {
+      if (currentFunction != FunctionType.INITIALIZER)
+        Lox.error(stmt.keyword, "Can't return a value from an initializer.");
+
       resolve(stmt.value);
+    }
     return null;
   }
 
@@ -188,6 +193,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     scopes.peek().put("this", true);
     for (Stmt.Function method : stmt.methods) {
       FunctionType declaration = FunctionType.METHOD;
+      if (method.name.equals("init"))
+        declaration = FunctionType.INITIALIZER;
       resolveFunction(method, declaration);
     }
     endScope();
