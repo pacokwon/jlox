@@ -34,7 +34,8 @@ public class GenerateAst {
         "Variable   : Token name",
         "Get        : Expr object, Token name",
         "Set        : Expr object, Token name, Expr value",
-        "This       : Token keyword"
+        "This       : Token keyword",
+        "Super      : Token keyword, Token method"
       );
     else if (baseName.equals("Stmt"))
       return Arrays.asList(
@@ -47,7 +48,7 @@ public class GenerateAst {
         "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
         "While      : Expr condition, Stmt body",
         "Return     : Token keyword, Expr value",
-        "Class      : Token name, List<Stmt.Function> methods"
+        "Class      : Token name, Expr.Variable superclass, List<Stmt.Function> methods"
       );
     else
       throw new RuntimeException("Invalid baseName. Must be either \"Expr\" or \"Stmt\"");
