@@ -172,7 +172,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       Lox.error(stmt.keyword, "Can't return from top-level code.");
 
     if (stmt.value != null) {
-      if (currentFunction != FunctionType.INITIALIZER)
+      if (currentFunction == FunctionType.INITIALIZER)
         Lox.error(stmt.keyword, "Can't return a value from an initializer.");
 
       resolve(stmt.value);
