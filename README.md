@@ -14,3 +14,24 @@ This version of the Lox language is a naive tree-walker interpreter, with the fo
 * static variable resolution and error detection
 * class with constructor, methods, and fields
 * class inheritance
+
+# Build
+Install the source code using git, and run `make`.
+```bash
+$ git clone https://github.com/pacokwon/jlox
+$ cd jlox
+$ make
+```
+
+# Run
+First, create a `lox` source file.
+```bash
+$ echo 'print "Hello Lox!";' > test.lox
+```
+
+Navigate to the project root directory and pass a filename to `lox`.
+```bash
+$ echo 'print "Hello Lox!";' > test.lox
+$ ./lox test.lox
+Hello Lox!
+```
